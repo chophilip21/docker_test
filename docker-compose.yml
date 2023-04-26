@@ -4,7 +4,21 @@ services:
   backend:
     build: ./webscrapper
     ports:
-      - 5000:5000
+      - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
       - ./webscrapper:/app
     command: uvicorn main:app --reload --host 0.0.0.0 --port 5000
+    networks:
+      default:
+        aliases:
+            - backend
+
+  streamlit-app:
+    build: ./front
+    container_name: streamlitapp
+    depends_on:
+      - backend 
+    ports:
+      - ${FRONTEND_PORT}:${FRONTEND_PORT}
+    working_dir: /usr/src/app
+    command: streamlit run ./main.py

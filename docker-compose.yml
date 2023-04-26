@@ -1,0 +1,10 @@
+# docker-compose.yml
+version: '3.8'
+services:
+  backend:
+    build: ./webscrapper
+    ports:
+      - 5000:5000
+    volumes:
+      - ./webscrapper:/app
+    command: uvicorn main:app --reload --host 0.0.0.0 --port 5000

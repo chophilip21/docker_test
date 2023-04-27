@@ -44,7 +44,7 @@ curl -s backend:5000/
 Do not hard-code the ports. Use config file to set global env file:
 
 ```bash
-docker compose build
+docker compose --env-file=./config.env build
 
 docker compose --env-file=./config.env config # check things are what you indeded.
 docker compose --env-file=./config.env up

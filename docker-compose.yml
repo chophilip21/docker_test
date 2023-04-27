@@ -7,7 +7,7 @@ services:
       - ${BACKEND_PORT}:${BACKEND_PORT}
     volumes:
       - ./webscrapper:/app
-    command: uvicorn main:app --reload --host 0.0.0.0 --port 5000
+    command: uvicorn main:app --reload --host 0.0.0.0 --port ${BACKEND_PORT}
     networks:
       default:
         aliases:
@@ -21,4 +21,3 @@ services:
     ports:
       - ${FRONTEND_PORT}:${FRONTEND_PORT}
     working_dir: /usr/src/app
-    command: streamlit run ./main.py

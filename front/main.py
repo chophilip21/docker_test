@@ -3,7 +3,7 @@ import pandas as pd
 import requests
 import json
 import uuid
-
+import os
 
 # init sessionv variables
 if "news" not in st.session_state:
@@ -15,18 +15,51 @@ if "summary" not in st.session_state:
 
 def display_news():
     """Called upon onclick of get_news_button"""
+    if "BACKEND_PORT" in os.environ:
+        backend_port = str(os.getenv("BACKEND_PORT"))
 
-    txt = str(uuid.uuid4())
-    return txt
+        # get the news from backend
+        response = requests.get(f"http://backend:{backend_port}/api/v1/get/news")
+
+        # response successful return the data
+        if response.status_code == 200:
+            content = response.json()
+            text = content["content"]
+            title = content["title"]
+            return f"{title}\n\n{text}"
+
+        else:
+            return "Port set properly, but backend did not respond with 200"
+
+    return "BACKEND_PORT not found in environment variables"
 
 
 def get_summary():
     """Called upon onclick of summarize_button"""
 
-    txt = str(uuid.uuid4())
-    return txt
+    if st.session_state.news == "Click the button to get news":
+        return "Get news first, and then ask to summarize"
+
+    if "BACKEND_PORT" in os.environ:
+        backend_port = str(os.getenv("BACKEND_PORT"))
+
+        # get the news from backend using json obj (based on Pydantic definition).
+        json_obj = {"content": st.session_state.news}
+        response = requests.get(
+            f"http://backend:{backend_port}/api/v1/get/summary", json=json_obj
+        )
+
+        if response.status_code == 200:
+            content = response.json()
+            summary = content["summary"]
+            return summary
+        else:
+            return "Port set properly, but backend did not respond with 200"
+
+    return "Getting Summary has failed. Backend port not found in environment variables"
 
 
+#
 st.title("Summarize News using AI 🤖")
 
 st.markdown(
@@ -43,7 +76,7 @@ col1, col2, col3, col4 = st.columns(4)
 with col1:
     pass
 with col2:
-    get_news_button = st.button("Get News", on_click=display_news)
+    get_news_button = st.button("Get News")
 with col3:
     summarize_buttom = st.button("Summarize")
 with col4:

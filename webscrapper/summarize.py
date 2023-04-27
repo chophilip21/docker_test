@@ -1,25 +1,23 @@
-from transformers import AutoTokenizer
-import requests
 from transformers import pipeline
-import json
 import warnings
+from pydantic import BaseModel
 
 warnings.filterwarnings("ignore")
 
 
-def summarize_random_news():
-    """Summarizes a random news."""
-    response = requests.get("http://127.0.0.1:8000")
-    content = response.json()
-    summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model")
-    summarized_content = summarizer(content["content"])
+class Data(BaseModel):
+    """Data model for the summary. Keep it simple."""
 
-    # todo, as summary input, maybe use both title and content.
+    content: str
+
+
+def summarize_random_news(content: Data) -> dict:
+    """Summarizes a random news."""
+    summarizer = pipeline("summarization", model="stevhliu/my_awesome_billsum_model")
+    summarized_content = summarizer(content.content)
     actual_summary = summarized_content[0]["summary_text"]
 
-    content["summary"] = actual_summary
-
-    return content
+    return {"summary": actual_summary}
 
 
 if __name__ == "__main__":

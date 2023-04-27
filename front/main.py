@@ -1,8 +1,7 @@
 import streamlit as st
 import pandas as pd
 import requests
-import json
-import uuid
+
 import os
 
 # init sessionv variables
@@ -13,25 +12,26 @@ if "summary" not in st.session_state:
     st.session_state.summary = "Click the button to get summary"
 
 
+# TODO:Fix the backend port logic by copying a file or something.
 def display_news():
     """Called upon onclick of get_news_button"""
-    if "BACKEND_PORT" in os.environ:
+    if "BACKEND_PORT" not in os.environ:
+        backend_port = 5000
+    else:
         backend_port = str(os.getenv("BACKEND_PORT"))
 
-        # get the news from backend
-        response = requests.get(f"http://backend:{backend_port}/api/v1/get/news")
+    # get the news from backend
+    response = requests.get(f"http://backend:{backend_port}/api/v1/get/news")
 
-        # response successful return the data
-        if response.status_code == 200:
-            content = response.json()
-            text = content["content"]
-            title = content["title"]
-            return f"{title}\n\n{text}"
+    # response successful return the data
+    if response.status_code == 200:
+        content = response.json()
+        text = content["content"]
+        title = content["title"]
+        return f"{title}\n\n{text}"
 
-        else:
-            return "Port set properly, but backend did not respond with 200"
-
-    return "BACKEND_PORT not found in environment variables"
+    else:
+        return "Port set properly, but backend did not respond with 200"
 
 
 def get_summary():
@@ -40,26 +40,25 @@ def get_summary():
     if st.session_state.news == "Click the button to get news":
         return "Get news first, and then ask to summarize"
 
-    if "BACKEND_PORT" in os.environ:
+    if "BACKEND_PORT" not in os.environ:
+        backend_port = 5000
+    else:
         backend_port = str(os.getenv("BACKEND_PORT"))
 
-        # get the news from backend using json obj (based on Pydantic definition).
-        json_obj = {"content": st.session_state.news}
-        response = requests.get(
-            f"http://backend:{backend_port}/api/v1/get/summary", json=json_obj
-        )
+    # get the news from backend using json obj (based on Pydantic definition).
+    json_obj = {"content": st.session_state.news}
+    response = requests.get(
+        f"http://backend:{backend_port}/api/v1/get/summary", json=json_obj
+    )
 
-        if response.status_code == 200:
-            content = response.json()
-            summary = content["summary"]
-            return summary
-        else:
-            return "Port set properly, but backend did not respond with 200"
-
-    return "Getting Summary has failed. Backend port not found in environment variables"
+    if response.status_code == 200:
+        content = response.json()
+        summary = content["summary"]
+        return summary
+    else:
+        return "Port set properly, but backend did not respond with 200"
 
 
-#
 st.title("Summarize News using AI 🤖")
 
 st.markdown(
@@ -89,7 +88,7 @@ if summarize_buttom:
     st.session_state.summary = get_summary()
 
 st.header("News Article", help=None)
-st.code(st.session_state.news, language="python")
+st.markdown(st.session_state.news)
 st.divider()
 st.subheader("Summary")
-st.code(st.session_state.summary, language="python")
+st.markdown(st.session_state.summary)

@@ -1,6 +1,23 @@
 # docker_test
-Test repository for docker based applications
+Test repository for docker based applications.
 
+```
+app/
+├── config.env
+├── docker-compose.yml
+├── front/
+│   ├── __init__.py
+│   ├── Dockerfile
+│   ├── main.py
+│   └── requirements.txt
+└── webscrapper/
+    ├── __init__.py
+    ├── Dockerfile
+    ├── main.py
+    ├── requirements.txt
+    ├── scrape.py
+    └── summarize.py
+```
 # application
 
 ```
@@ -10,44 +27,48 @@ pip install -r requirements.txt
 # pip3 freeze > requirements.txt
 ```
 
-There are two parts to the backend of our application.
+There are two services to the backend of our application.
 
 1. Webscrapper that randomly scraps news article and content from daily mail 
 2. HuggingFace Machine learning model that summarizes news contents. 
 
 And finally a Lite-frontend module generated with streamlit. 
 
-# Using Docker for Microservice
 
-In practice, everything should be dockerized and run in distributed fashion. We need to create a microservice application here, where each function is referred to as a service and performs a single task. The advantage of this is that individual services work without impacting the other services. For example, if one service is in more demand than the others, it can be independently scaled. 
+# Changes
 
-Machine learning (ML) applications are often complex systems with many moving parts and must be able to scale to meet business demands. Using a microservice architecture for ML applications is usually desirable. After you have trained and saved your model, you need a way of serving predictions to the end user. REST APIs are a great way to achieve this goal.
+## env change 
+- Do not use --env-file. Just embed it inside the docker-compose. Must be called `.env`. Not something else. 
 
-![embed](https://developer-blogs.nvidia.com/wp-content/uploads/2022/08/Screen-Shot-2022-08-03-at-5.01.58-PM-625x227.png) An embedded architecture refers to a system in which the trained model is embedded into the API and installed as a dependency. 
+## MongoDB
 
-In our case, our test application is tiny, so there is no need to have a seperate REST API backend service for webscrapper and HuggingFace inference engine. We just need to have:
-1. One service for backend (webscrapper + inference)
-2. Front end module to trigger and display: A) load sample by calling webpscrapper endpoint, 2) Based on loaded webscrapper data, call inference endpoint to run summarization.
+Already have experience with SQLAlchemy and PostgresSQL DB. Not much experience with NoSQL db. Would this be interesting?
 
-But you don't want to hard-code API endpoint like this in your code:
+- MongoDB Atlas is a fully managed cloud database that offers robust data management. These are free, and you don't need a seperate service defined because it's always up and running in the cloud. 
+
+## Scaling and load balancing
+
+This is very important part. How do you make things scale?
+
 
 ```bash
-r = requests.post(url = "http://127.0.0.1:8000/preprocess/", data=dataJSON)
+docker compose up -d --scale backend=3
+docker compose logs --tail=1 backend
+docker rmi $(docker images -a|grep "<none>"|awk '$1=="<none>" {print $3}')
 ```
 
-Hard coding URL is terrible idea. Create network aliases. By giving alias names, you can directly call it internally. 
+- When you want to scale, you need to make sure you are not binding to specific port. Otherwise you will get message saying your port has already been allocated. he “ports” value “8080” allows Docker to assign the ports to services on the host network automatically:
 
-```bash
-curl -s backend:5000/
-```
-
-Do not hard-code the ports. Use config file to set global env file:
-
-```bash
-docker compose --env-file=./config.env build
-
-docker compose --env-file=./config.env config # check things are what you indeded.
-docker compose --env-file=./config.env up
-```
+- Well if you are scaling, how oo we do load balancing? ---> You can add NGINX load balancer. But if you are using Kubernetes, that's why more efficient.  
 
 
+
+## Beyond Docker Compose. What are the limitations?
+
+Compose lets you define your application and apply the definition to a single machine running Docker.  It is not a full container platform like Docker
+Swarm or Kubernetes—it does not continually run to make sure your application
+keeps its desired state. Here is a list of problems:
+
+- There is health checks, but it won't recreate containers when it fail.
+- Docker Compose is designed to run on a single host or cluster, while Kubernetes is more agile in incorporating multiple cloud environments and clusters.
+- Kubernetes is easier to scale beyond a certain point plus you can utilize native services of AWS , Azure and GCP to support our deployment.

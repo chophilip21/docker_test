@@ -2,9 +2,11 @@
 version: '3.8'
 services:
   backend:
+    env_file:
+      - .env
     build: ./webscrapper
     ports:
-      - ${BACKEND_PORT}:${BACKEND_PORT}
+      - ${BACKEND_PORT}
     volumes:
       - ./webscrapper:/app
     command: uvicorn main:app --reload --host 0.0.0.0 --port ${BACKEND_PORT}
@@ -14,6 +16,8 @@ services:
             - backend
 
   streamlit-app:
+    env_file:
+      - .env
     build: ./front
     container_name: streamlitapp
     depends_on:
@@ -21,3 +25,4 @@ services:
     ports:
       - ${FRONTEND_PORT}:${FRONTEND_PORT}
     working_dir: /usr/src/app
+  

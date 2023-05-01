@@ -104,6 +104,12 @@ It will ask you to change it to something else. Change it. Add source.
 
 http://localhost:9090
 
+---> This worked for some reason.
+
+```bash
+http://prometheus:9090
+```
+Go to explore dashboard
 
 
 ## Cadvisor 
@@ -111,3 +117,8 @@ http://localhost:9090
 cAdvisor consists of a single container daemon that collects information about the containers that are running, processes that data, and then exports it. This information can go to its dedicated web interface, or to a third-party app, such as Big Query, ElasticSearch, InfluxDB, Kafka, Prometheus, Redis, or StatsD.
 
 The redis service is a standard Redis server. cAdvisor will gather container metrics from this container automatically, i.e. without any further configuration.
+
+
+## redis
+
+https://github.com/nextcloud/all-in-one/discussions/1731
